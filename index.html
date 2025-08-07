@@ -1,1 +1,488 @@
-m
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Mentoría, Consultoría o Coaching?</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos personalizados y configuración de fuentes */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f9fafb;
+        }
+        .font-serif-display {
+            font-family: 'Source Serif 4', serif;
+        }
+        /* Transiciones suaves para las pantallas */
+        .screen {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        /* Animación de carga */
+        .loader {
+            border-top-color: #f9442c;
+            animation: spinner 1.5s linear infinite;
+        }
+        
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <main id="app-container" class="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 overflow-hidden">
+
+        <!-- 1. Pantalla de Bienvenida -->
+        <div id="welcome-screen" class="screen text-center">
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-60" onerror="this.style.display='none'">
+            </div>
+            <h1 class="font-serif-display text-3xl md:text-4xl font-bold text-gray-800">¿Mentoría, Consultoría o Coaching?</h1>
+            <p class="mt-4 text-gray-600">Esta app interactiva te ayuda a definir si tu prioridad es inspiración práctica, guía táctica o claridad interna.</p>
+            <button id="start-btn" class="mt-8 w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
+                Comenzar
+            </button>
+        </div>
+
+        <!-- 2. Pantalla de Captura de Nombre -->
+        <div id="name-screen" class="screen hidden text-center">
+            <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">Primero, ¿cómo te llamas?</h2>
+            <input type="text" id="name-input" placeholder="Tu Nombre" class="mt-6 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f9442c]">
+            <button id="continue-name-btn" class="mt-6 w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Continuar</button>
+        </div>
+
+        <!-- 3. Pantalla de Preguntas -->
+        <div id="question-screen" class="screen hidden">
+            <p id="progress-indicator" class="text-sm font-semibold text-center text-[#f9442c]">Pregunta 1 de 9</p>
+            <h2 id="question-text" class="font-serif-display text-2xl font-bold text-gray-800 mt-4 text-center"></h2>
+            <div id="options-container" class="mt-6 space-y-4">
+                <!-- Opciones se insertan aquí dinámicamente -->
+            </div>
+            <div class="mt-8 text-center">
+                <button id="back-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
+            </div>
+        </div>
+        
+        <!-- Pantalla de Carga -->
+        <div id="loading-screen" class="screen hidden text-center">
+            <div class="flex justify-center items-center">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+            </div>
+            <h2 class="font-serif-display text-xl font-bold text-gray-800">Analizando tus respuestas…</h2>
+        </div>
+
+
+        <!-- 4. Pantalla de Resultado -->
+        <div id="result-screen" class="screen hidden text-center">
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-60" onerror="this.style.display='none'">
+            </div>
+            <h1 id="result-title" class="font-serif-display text-3xl font-bold text-[#1f2937]"></h1>
+            <p id="result-text" class="mt-4 text-[#1f2937]"></p>
+            <div id="result-cta-container" class="mt-8 w-full space-y-4"></div>
+            <div class="mt-6 border-t pt-6 space-y-2">
+                <button id="share-btn" class="text-sm font-semibold text-[#f9442c] hover:underline py-2 px-4 rounded-lg transition-colors">Comparte esta App</button>
+                <button id="restart-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Reiniciar Test</button>
+            </div>
+            <p id="share-feedback" class="text-sm text-green-600 mt-2 h-5"></p>
+            <p id="disclaimer" class="mt-4 text-xs text-gray-400 italic">Esta app es una herramienta de orientación. El acompañamiento ideal puede variar según tu contexto.</p>
+        </div>
+
+        <!-- Pantalla para opciones de Coaching -->
+        <div id="coaching-options-screen" class="screen hidden text-center">
+            <!-- CAMBIO: Textos actualizados -->
+            <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">¿Qué necesitas ahora?</h2>
+            
+            <div class="text-center mb-6">
+                <h3 class="font-serif-display text-xl text-gray-800 mb-2">Claridad inmediata</h3>
+                <p class="text-gray-600 mb-4">Una sesión única para ordenar ideas y salir con un plan claro.</p>
+                <button id="chispa-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Ver Chispa Estratégica</button>
+            </div>
+            
+            <div class="text-center">
+                <h3 class="font-serif-display text-xl text-gray-800 mb-2">Acompañamiento sostenido</h3>
+                <p class="text-gray-600 mb-4">Un proceso de 9 meses para ganar confianza, motivación y dirección hacia una meta de alto impacto.</p>
+                <button id="enciende-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Conocer Enciende tu Dirección</button>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button id="back-to-result-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de video actualizada -->
+        <div id="video-screen" class="screen hidden text-center">
+             <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">Programa Enciende tu Dirección</h2>
+             <div class="w-full max-w-[280px] mx-auto">
+                <div class="relative" style="padding-top: 177.77%;">
+                    <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/qzc22YT98ug" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+             </div>
+             <div class="mt-6">
+                <button onclick="window.open('https://tr.ee/q03zDj', '_blank')" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Quiero mi videollamada Gratuita</button>
+             </div>
+             <div class="mt-4 text-center">
+                <button id="back-from-video-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- MODELO DE DATOS (PREGUNTAS) ---
+            const questions = [
+              {
+                text: "¿En qué etapa estás hoy?",
+                options: [
+                  { text: "Sé hacia dónde voy y quiero aprender de alguien que ya lo logró", type: "mentoria" },
+                  { text: "Ya tengo mi plan de acción, pero necesito recomendaciones para alcanzar acciones específicas", type: "consultoria" },
+                  { text: "Estoy definiendo mi meta y quiero descubrir mi mejor camino", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué esperas del acompañamiento?",
+                options: [
+                  { text: "Inspiración práctica basada en experiencia real", type: "mentoria" },
+                  { text: "Un guía que me entregue una ruta clara, con pasos y herramientas aplicables", type: "consultoria" },
+                  { text: "Claridad interna para decidir con confianza y dirección", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué tipo de claridad te hace más falta hoy?",
+                options: [
+                  { text: "Cómo lo han hecho otros en mi situación", type: "mentoria" },
+                  { text: "Qué hacer específicamente para lograr lo que quiero", type: "consultoria" },
+                  { text: "Qué es lo que verdaderamente quiero lograr y por qué", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué prefieres recibir en las sesiones?",
+                options: [
+                  { text: "Consejos de alguien que ya pasó por lo mismo", type: "mentoria" },
+                  { text: "Un plan de acción diseñado para mi caso", type: "consultoria" },
+                  { text: "Espacio para ordenar mis ideas, desbloquearme y tomar decisiones", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué describe mejor tu proceso actual?",
+                options: [
+                  { text: "Quiero avanzar con respaldo de alguien que ya lo logró", type: "mentoria" },
+                  { text: "Estoy listo(a) para ejecutar, pero necesito precisión táctica", type: "consultoria" },
+                  { text: "Estoy en etapa de exploración, quiero alinear ideas, emociones y dirección", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Cómo te relacionas con tus decisiones?",
+                options: [
+                  { text: "Las tengo claras, pero quiero evitar errores comunes", type: "mentoria" },
+                  { text: "Ya decidí, pero no sé exactamente cómo hacerlo funcionar", type: "consultoria" },
+                  { text: "Me cuesta decidir o confiar en mi decisión", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué te haría sentir más acompañado en este momento?",
+                options: [
+                  { text: "Un modelo de éxito con el que identificarme", type: "mentoria" },
+                  { text: "Una guía con pasos probados para aplicar", type: "consultoria" },
+                  { text: "Una conversación profunda para elegir desde mí", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué resultado te haría decir: “valió la pena”?",
+                options: [
+                  { text: "Tener acceso a la experiencia de alguien que ya logró lo que quiero", type: "mentoria" },
+                  { text: "Recibí las respuestas y guías tácticas que buscaba", type: "consultoria" },
+                  { text: "Tomar decisiones propias con foco, confianza y dirección", type: "coaching" }
+                ]
+              },
+              {
+                text: "¿Qué etapa necesitas fortalecer primero?",
+                options: [
+                  { text: "El cómo lo hicieron otros", type: "mentoria" },
+                  { text: "El cómo hacerlo paso a paso", type: "consultoria" },
+                  { text: "El qué quiero lograr, por qué y hacia dónde voy", type: "coaching" }
+                ]
+              }
+            ];
+
+            // --- ESTADO DE LA APLICACIÓN ---
+            let currentQuestionIndex = 0;
+            let userName = '';
+            let userAnswers = new Array(questions.length).fill(null);
+
+            // --- REFERENCIAS AL DOM ---
+            const screens = {
+                welcome: document.getElementById('welcome-screen'),
+                name: document.getElementById('name-screen'),
+                question: document.getElementById('question-screen'),
+                loading: document.getElementById('loading-screen'),
+                result: document.getElementById('result-screen'),
+                coachingOptions: document.getElementById('coaching-options-screen'),
+                video: document.getElementById('video-screen'),
+            };
+
+            const elements = {
+                startBtn: document.getElementById('start-btn'),
+                nameInput: document.getElementById('name-input'),
+                continueNameBtn: document.getElementById('continue-name-btn'),
+                progressIndicator: document.getElementById('progress-indicator'),
+                questionText: document.getElementById('question-text'),
+                optionsContainer: document.getElementById('options-container'),
+                backBtn: document.getElementById('back-btn'),
+                resultTitle: document.getElementById('result-title'),
+                resultText: document.getElementById('result-text'),
+                resultCtaContainer: document.getElementById('result-cta-container'),
+                restartBtn: document.getElementById('restart-btn'),
+                shareBtn: document.getElementById('share-btn'),
+                shareFeedback: document.getElementById('share-feedback'),
+                backToResultBtn: document.getElementById('back-to-result-btn'),
+                chispaBtn: document.getElementById('chispa-btn'),
+                enciendeBtn: document.getElementById('enciende-btn'),
+                backFromVideoBtn: document.getElementById('back-from-video-btn'),
+            };
+            
+            // --- LÓGICA DE LA APLICACIÓN ---
+
+            function resetApp() {
+                currentQuestionIndex = 0;
+                userAnswers = new Array(questions.length).fill(null);
+                userName = '';
+                elements.nameInput.value = '';
+                elements.shareFeedback.textContent = '';
+                showScreen('welcome');
+            }
+
+            function showScreen(screenKey) {
+                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+                if (screens[screenKey]) {
+                    screens[screenKey].classList.remove('hidden');
+                }
+            }
+
+            function displayQuestion() {
+                elements.backBtn.style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+                
+                const question = questions[currentQuestionIndex];
+                elements.progressIndicator.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+                elements.questionText.textContent = question.text;
+                elements.optionsContainer.innerHTML = '';
+
+                question.options.forEach((option, index) => {
+                    const optionId = `option-${currentQuestionIndex}-${index}`;
+                    const optionWrapper = document.createElement('div');
+                    const radioInput = document.createElement('input');
+                    radioInput.type = 'radio';
+                    radioInput.name = `question-option-${currentQuestionIndex}`;
+                    radioInput.value = option.type;
+                    radioInput.id = optionId;
+                    radioInput.className = 'hidden';
+
+                    if (userAnswers[currentQuestionIndex] === option.type) {
+                        radioInput.checked = true;
+                    }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = optionId;
+                    label.textContent = option.text;
+                    label.className = 'block w-full text-center px-6 py-3 rounded-lg shadow-md transition-all duration-200 cursor-pointer bg-white text-gray-700 border border-gray-300 hover:bg-gray-100';
+                    
+                    if (radioInput.checked) {
+                        label.classList.add('bg-[#f9442c]', 'text-white', 'border-transparent', 'ring-2', 'ring-offset-2', 'ring-[#f9442c]', 'transform', 'scale-105');
+                        label.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                    }
+
+                    radioInput.addEventListener('change', () => {
+                        userAnswers[currentQuestionIndex] = radioInput.value;
+
+                        const allLabels = elements.optionsContainer.querySelectorAll('label');
+                        allLabels.forEach(lbl => {
+                            lbl.classList.remove('bg-[#f9442c]', 'text-white', 'border-transparent', 'ring-2', 'ring-offset-2', 'ring-[#f9442c]', 'transform', 'scale-105');
+                            lbl.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                        });
+                        label.classList.add('bg-[#f9442c]', 'text-white', 'border-transparent', 'ring-2', 'ring-offset-2', 'ring-[#f9442c]', 'transform', 'scale-105');
+                        label.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                        
+                        setTimeout(() => {
+                            currentQuestionIndex++;
+                            if (currentQuestionIndex < questions.length) {
+                                displayQuestion();
+                            } else {
+                                showResult();
+                            }
+                        }, 400);
+                    });
+
+                    optionWrapper.appendChild(radioInput);
+                    optionWrapper.appendChild(label);
+                    elements.optionsContainer.appendChild(optionWrapper);
+                });
+            }
+            
+            function showResult() {
+                showScreen('loading');
+
+                let scores = { mentoria: 0, consultoria: 0, coaching: 0 };
+                userAnswers.forEach(answer => {
+                    if (answer) {
+                        scores[answer]++;
+                    }
+                });
+
+                setTimeout(() => {
+                    let resultType = 'coaching'; // Default
+                    const maxScore = Math.max(scores.mentoria, scores.consultoria, scores.coaching);
+                    
+                    if (scores.coaching === maxScore) {
+                        resultType = 'coaching';
+                    } else if (scores.consultoria === maxScore) {
+                        resultType = 'consultoria';
+                    } else if (scores.mentoria === maxScore) {
+                        resultType = 'mentoria';
+                    }
+
+                    const namePrefix = userName ? `${userName}, ` : '';
+
+                    const resultsData = {
+                        mentoria: {
+                            title: `${namePrefix}tu camino ya tiene rumbo. Ahora necesitas inspiración.`,
+                            text: `Estás listo(a) para avanzar y aprender de alguien que ya recorrió ese mismo camino. La <strong class="text-[#f9442c]">mentoría</strong> puede ofrecerte atajos, aprendizajes clave y confianza desde la experiencia real. <br><br>Mi acompañamiento no aborda la consultoría ni mentoría. Pero si en algún momento pierdes enfoque y motivación interna, estaré para acompañarte. Por lo pronto, te dejo un video para que te de dirección en tu mentoría.`,
+                            ctas: [{ text: "Ver video sobre Mentoría", link: "https://www.youtube.com/watch?v=l7K9XZq8TfE" }]
+                        },
+                        consultoria: {
+                            title: `${namePrefix}ya tienes la dirección. Ahora necesitas precisión.`,
+                            text: `Estás en modo acción. Un <strong class="text-[#f9442c]">consultor</strong> puede ayudarte con estrategias, soluciones técnicas o sistemas listos para implementar. No se trata de descubrir… sino de optimizar. <br><br>Mi acompañamiento no aborda la consultoría ni mentoría. Pero si en algún momento pierdes enfoque y motivación interna, estaré para acompañarte. Por lo pronto, te dejo un video para que te de dirección.`,
+                            ctas: [{ text: "Ver video sobre Consultoría", link: "https://www.youtube.com/watch?v=PCpooby3FkM" }]
+                        },
+                        coaching: {
+                            title: `${namePrefix}antes de avanzar… toca mirar hacia dentro.`,
+                            text: `Estás en una etapa clave para conectar con tu visión, tu motivación real y tu propósito. Un <strong class="text-[#f9442c]">coach</strong> puede ayudarte a desbloquearte, encontrar dirección propia y tomar decisiones con confianza.`,
+                            ctas: [{ text: "Quiero explorar tus tipos de coaching", action: 'showCoachingOptions' }]
+                        }
+                    };
+                    
+                    const finalResult = resultsData[resultType];
+                    elements.resultTitle.innerHTML = finalResult.title;
+                    elements.resultText.innerHTML = finalResult.text;
+                    
+                    elements.resultCtaContainer.innerHTML = '';
+
+                    finalResult.ctas.forEach(cta => {
+                        const button = document.createElement('button');
+                        button.textContent = cta.text;
+                        button.className = 'w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold';
+                        
+                        if (cta.action === 'showCoachingOptions') {
+                            button.addEventListener('click', () => showScreen('coachingOptions'));
+                        } else {
+                            button.dataset.link = cta.link;
+                            button.addEventListener('click', () => {
+                                const link = button.dataset.link;
+                                if (link) {
+                                    window.open(link, '_blank');
+                                }
+                            });
+                        }
+                        elements.resultCtaContainer.appendChild(button);
+                    });
+
+                    showScreen('result');
+                }, 1500);
+            }
+
+            async function shareApp() {
+                const shareData = {
+                    title: '¿Mentoría, Consultoría o Coaching?',
+                    text: 'Descubre qué tipo de acompañamiento necesitas con esta app interactiva.',
+                    url: window.location.href 
+                };
+                try {
+                    if (navigator.share) {
+                        await navigator.share(shareData);
+                        elements.shareFeedback.textContent = '¡Gracias por compartir!';
+                    } else {
+                        throw new Error('Share API not supported');
+                    }
+                } catch (err) {
+                    try {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = shareData.url;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        elements.shareFeedback.textContent = '¡Enlace copiado al portapapeles!';
+                    } catch (copyErr) {
+                        elements.shareFeedback.textContent = 'No se pudo compartir o copiar.';
+                    }
+                }
+                setTimeout(() => {
+                    elements.shareFeedback.textContent = '';
+                }, 3000);
+            }
+
+            // --- EVENT LISTENERS ---
+
+            elements.startBtn.addEventListener('click', () => {
+                showScreen('name');
+            });
+
+            elements.continueNameBtn.addEventListener('click', () => {
+                userName = elements.nameInput.value.trim();
+                showScreen('question');
+                displayQuestion();
+            });
+
+            elements.backBtn.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    userAnswers[currentQuestionIndex] = null;
+                    displayQuestion();
+                }
+            });
+
+            elements.restartBtn.addEventListener('click', () => {
+                resetApp();
+            });
+
+            elements.shareBtn.addEventListener('click', shareApp);
+
+            elements.backToResultBtn.addEventListener('click', () => {
+                showScreen('result');
+            });
+
+            elements.chispaBtn.addEventListener('click', () => {
+                window.open('https://tr.ee/0hgA06', '_blank');
+            });
+
+            elements.enciendeBtn.addEventListener('click', () => {
+                showScreen('video');
+            });
+
+            elements.backFromVideoBtn.addEventListener('click', () => {
+                showScreen('coachingOptions');
+            });
+
+            // --- INICIALIZACIÓN ---
+            showScreen('welcome');
+        });
+    </script>
+</body>
+</html>
