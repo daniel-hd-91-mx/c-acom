@@ -107,7 +107,6 @@
 
         <!-- Pantalla para opciones de Coaching -->
         <div id="coaching-options-screen" class="screen hidden text-center">
-            <!-- CAMBIO: Textos actualizados -->
             <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">¿Qué necesitas ahora?</h2>
             
             <div class="text-center mb-6">
@@ -127,7 +126,7 @@
             </div>
         </div>
 
-        <!-- Pantalla de video actualizada -->
+        <!-- Pantalla de video Enciende tu Dirección -->
         <div id="video-screen" class="screen hidden text-center">
              <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">Programa Enciende tu Dirección</h2>
              <div class="w-full max-w-[280px] mx-auto">
@@ -140,6 +139,31 @@
              </div>
              <div class="mt-4 text-center">
                 <button id="back-from-video-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
+            </div>
+        </div>
+
+        <!-- CAMBIO: Pantallas de video actualizadas -->
+        <div id="mentoria-video-screen" class="screen hidden text-center">
+            <div class="w-full">
+                <div class="relative" style="padding-top: 56.25%;"> <!-- 16:9 Ratio -->
+                    <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/l7K9XZq8TfE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-gray-600"><i>No olvides seguirme en <strong class="font-semibold">instagram</strong></i></p>
+            <div class="mt-4 text-center">
+                <button id="back-from-mentoria-video-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
+            </div>
+        </div>
+
+        <div id="consultoria-video-screen" class="screen hidden text-center">
+            <div class="w-full">
+                <div class="relative" style="padding-top: 56.25%;"> <!-- 16:9 Ratio -->
+                    <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/PCpooby3FkM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-gray-600"><i>No olvides seguirme en <strong class="font-semibold">instagram</strong></i></p>
+            <div class="mt-4 text-center">
+                <button id="back-from-consultoria-video-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
             </div>
         </div>
 
@@ -237,6 +261,8 @@
                 result: document.getElementById('result-screen'),
                 coachingOptions: document.getElementById('coaching-options-screen'),
                 video: document.getElementById('video-screen'),
+                mentoriaVideo: document.getElementById('mentoria-video-screen'),
+                consultoriaVideo: document.getElementById('consultoria-video-screen'),
             };
 
             const elements = {
@@ -257,6 +283,8 @@
                 chispaBtn: document.getElementById('chispa-btn'),
                 enciendeBtn: document.getElementById('enciende-btn'),
                 backFromVideoBtn: document.getElementById('back-from-video-btn'),
+                backFromMentoriaVideoBtn: document.getElementById('back-from-mentoria-video-btn'),
+                backFromConsultoriaVideoBtn: document.getElementById('back-from-consultoria-video-btn'),
             };
             
             // --- LÓGICA DE LA APLICACIÓN ---
@@ -363,13 +391,13 @@
                     const resultsData = {
                         mentoria: {
                             title: `${namePrefix}tu camino ya tiene rumbo. Ahora necesitas inspiración.`,
-                            text: `Estás listo(a) para avanzar y aprender de alguien que ya recorrió ese mismo camino. La <strong class="text-[#f9442c]">mentoría</strong> puede ofrecerte atajos, aprendizajes clave y confianza desde la experiencia real. <br><br>Mi acompañamiento no aborda la consultoría ni mentoría. Pero si en algún momento pierdes enfoque y motivación interna, estaré para acompañarte. Por lo pronto, te dejo un video para que te de dirección en tu mentoría.`,
-                            ctas: [{ text: "Ver video sobre Mentoría", link: "https://www.youtube.com/watch?v=l7K9XZq8TfE" }]
+                            text: `Estás listo(a) para avanzar y aprender de alguien que ya recorrió ese mismo camino. La <strong class="text-[#f9442c]">mentoría</strong> puede ofrecerte atajos, aprendizajes clave y confianza desde la experiencia real.`,
+                            ctas: [{ text: "Ver video sobre Mentoría", action: 'showMentoriaVideo' }]
                         },
                         consultoria: {
                             title: `${namePrefix}ya tienes la dirección. Ahora necesitas precisión.`,
-                            text: `Estás en modo acción. Un <strong class="text-[#f9442c]">consultor</strong> puede ayudarte con estrategias, soluciones técnicas o sistemas listos para implementar. No se trata de descubrir… sino de optimizar. <br><br>Mi acompañamiento no aborda la consultoría ni mentoría. Pero si en algún momento pierdes enfoque y motivación interna, estaré para acompañarte. Por lo pronto, te dejo un video para que te de dirección.`,
-                            ctas: [{ text: "Ver video sobre Consultoría", link: "https://www.youtube.com/watch?v=PCpooby3FkM" }]
+                            text: `Estás en modo acción. Un <strong class="text-[#f9442c]">consultor</strong> puede ayudarte con estrategias, soluciones técnicas o sistemas listos para implementar. No se trata de descubrir… sino de optimizar.`,
+                            ctas: [{ text: "Ver video sobre Consultoría", action: 'showConsultoriaVideo' }]
                         },
                         coaching: {
                             title: `${namePrefix}antes de avanzar… toca mirar hacia dentro.`,
@@ -391,14 +419,10 @@
                         
                         if (cta.action === 'showCoachingOptions') {
                             button.addEventListener('click', () => showScreen('coachingOptions'));
-                        } else {
-                            button.dataset.link = cta.link;
-                            button.addEventListener('click', () => {
-                                const link = button.dataset.link;
-                                if (link) {
-                                    window.open(link, '_blank');
-                                }
-                            });
+                        } else if (cta.action === 'showMentoriaVideo') {
+                            button.addEventListener('click', () => showScreen('mentoriaVideo'));
+                        } else if (cta.action === 'showConsultoriaVideo') {
+                            button.addEventListener('click', () => showScreen('consultoriaVideo'));
                         }
                         elements.resultCtaContainer.appendChild(button);
                     });
@@ -478,6 +502,14 @@
 
             elements.backFromVideoBtn.addEventListener('click', () => {
                 showScreen('coachingOptions');
+            });
+
+            elements.backFromMentoriaVideoBtn.addEventListener('click', () => {
+                showScreen('result');
+            });
+
+            elements.backFromConsultoriaVideoBtn.addEventListener('click', () => {
+                showScreen('result');
             });
 
             // --- INICIALIZACIÓN ---
