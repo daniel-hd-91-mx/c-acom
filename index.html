@@ -57,7 +57,7 @@
             <h1 class="font-serif-display text-3xl md:text-4xl font-bold text-gray-800">¿Mentoría, Consultoría o Coaching?</h1>
             <p class="mt-4 text-gray-600">Esta app interactiva te ayuda a definir si tu prioridad es inspiración práctica, guía táctica o claridad interna.</p>
             <button id="start-btn" class="mt-8 w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
-                Comenzar
+                Comenzar ahora
             </button>
         </div>
 
@@ -92,7 +92,8 @@
         <!-- 4. Pantalla de Resultado -->
         <div id="result-screen" class="screen hidden text-center">
             <div class="w-full flex justify-center mb-8">
-                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-60" onerror="this.style.display='none'">
+                <!-- CAMBIO: Tamaño del logo ajustado -->
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px]" onerror="this.style.display='none'">
             </div>
             <h1 id="result-title" class="font-serif-display text-3xl font-bold text-[#1f2937]"></h1>
             <p id="result-text" class="mt-4 text-[#1f2937]"></p>
@@ -107,18 +108,22 @@
 
         <!-- Pantalla para opciones de Coaching -->
         <div id="coaching-options-screen" class="screen hidden text-center">
+             <!-- CAMBIO: Logo añadido -->
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px]" onerror="this.style.display='none'">
+            </div>
             <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">¿Qué necesitas ahora?</h2>
             
             <div class="text-center mb-6">
                 <h3 class="font-serif-display text-xl text-gray-800 mb-2">Claridad inmediata</h3>
                 <p class="text-gray-600 mb-4">Una sesión única para ordenar ideas y salir con un plan claro.</p>
-                <button id="chispa-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Ver Chispa Estratégica</button>
+                <button id="chispa-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Quiero mi sesión de claridad inmediata</button>
             </div>
             
             <div class="text-center">
                 <h3 class="font-serif-display text-xl text-gray-800 mb-2">Acompañamiento sostenido</h3>
                 <p class="text-gray-600 mb-4">Un proceso de 9 meses para ganar confianza, motivación y dirección hacia una meta de alto impacto.</p>
-                <button id="enciende-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Conocer Enciende tu Dirección</button>
+                <button id="enciende-btn" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Quiero conocer el programa Enciende tu Dirección</button>
             </div>
 
             <div class="mt-8 text-center">
@@ -128,6 +133,10 @@
 
         <!-- Pantalla de video Enciende tu Dirección -->
         <div id="video-screen" class="screen hidden text-center">
+             <!-- CAMBIO: Logo añadido -->
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px]" onerror="this.style.display='none'">
+            </div>
              <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-4">Programa Enciende tu Dirección</h2>
              <div class="w-full max-w-[280px] mx-auto">
                 <div class="relative" style="padding-top: 177.77%;">
@@ -135,15 +144,19 @@
                 </div>
              </div>
              <div class="mt-6">
-                <button onclick="window.open('https://tr.ee/q03zDj', '_blank')" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Quiero mi Videollamada Gratuita</button>
+                <button onclick="window.open('https://tr.ee/q03zDj', '_blank')" class="w-full text-center px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">Quiero agendar mi videollamada gratuita</button>
              </div>
              <div class="mt-4 text-center">
                 <button id="back-from-video-btn" class="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Regresar</button>
             </div>
         </div>
 
-        <!-- CAMBIO: Pantallas de video actualizadas -->
+        <!-- Pantallas de video actualizadas -->
         <div id="mentoria-video-screen" class="screen hidden text-center">
+            <!-- CAMBIO: Logo añadido -->
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px]" onerror="this.style.display='none'">
+            </div>
             <div class="w-full">
                 <div class="relative" style="padding-top: 56.25%;"> <!-- 16:9 Ratio -->
                     <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/l7K9XZq8TfE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -156,6 +169,10 @@
         </div>
 
         <div id="consultoria-video-screen" class="screen hidden text-center">
+            <!-- CAMBIO: Logo añadido -->
+            <div class="w-full flex justify-center mb-8">
+                <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/in/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px]" onerror="this.style.display='none'">
+            </div>
             <div class="w-full">
                 <div class="relative" style="padding-top: 56.25%;"> <!-- 16:9 Ratio -->
                     <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/PCpooby3FkM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -392,17 +409,17 @@
                         mentoria: {
                             title: `${namePrefix}tu camino ya tiene rumbo. Ahora necesitas inspiración.`,
                             text: `Estás listo(a) para avanzar y aprender de alguien que ya recorrió ese mismo camino. La <strong class="text-[#f9442c]">mentoría</strong> puede ofrecerte atajos, aprendizajes clave y confianza desde la experiencia real.`,
-                            ctas: [{ text: "Ver video sobre Mentoría", action: 'showMentoriaVideo' }]
+                            ctas: [{ text: "Quiero saber cómo una mentoría puede impulsarme", action: 'showMentoriaVideo' }]
                         },
                         consultoria: {
                             title: `${namePrefix}ya tienes la dirección. Ahora necesitas precisión.`,
                             text: `Estás en modo acción. Un <strong class="text-[#f9442c]">consultor</strong> puede ayudarte con estrategias, soluciones técnicas o sistemas listos para implementar. No se trata de descubrir… sino de optimizar.`,
-                            ctas: [{ text: "Ver video sobre Consultoría", action: 'showConsultoriaVideo' }]
+                            ctas: [{ text: "Quiero saber cómo una consultoría puede ayudarme ahora", action: 'showConsultoriaVideo' }]
                         },
                         coaching: {
                             title: `${namePrefix}antes de avanzar… toca mirar hacia dentro.`,
                             text: `Estás en una etapa clave para conectar con tu visión, tu motivación real y tu propósito. Un <strong class="text-[#f9442c]">coach</strong> puede ayudarte a desbloquearte, encontrar dirección propia y tomar decisiones con confianza.`,
-                            ctas: [{ text: "Quiero explorar tus tipos de coaching", action: 'showCoachingOptions' }]
+                            ctas: [{ text: "Quiero descubrir qué tipo de coaching es para mí", action: 'showCoachingOptions' }]
                         }
                     };
                     
@@ -518,3 +535,4 @@
     </script>
 </body>
 </html>
+
