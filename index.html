@@ -1,824 +1,383 @@
-import React, { useState, useEffect, useRef } from 'react';
-
-// --- Helper Components & Hooks ---
-
-const useFocusOnMount = () => {
-    const ref = useRef(null);
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.focus();
-        }
-    }, []);
-    return ref;
-};
-
-const FontLoader = () => {
-    useEffect(() => {
-        const link = document.createElement('link');
-        link.href = "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;700&display=swap";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-    }, []);
-    return null;
-};
-
-const BackArrowIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mr-2">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-);
-
-const CheckIcon = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-);
-
-const ChevronDownIcon = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <polyline points="6 9 12 15 18 9"></polyline>
-    </svg>
-);
-
-
-// --- Analytics Mock Function ---
-const trackEvent = (eventName, properties) => {
-    console.log('ANALYTICS EVENT:', eventName, properties);
-};
-
-// --- Data for the Main App ---
-const quizData = {
-    'start': {
-        question: 'Hoy necesito…',
-        options: [
-            { text: 'Resolver algo urgente que no puede esperar.', value: 'urgent' },
-            { text: 'Avanzar hacia mis metas con apoyo constante.', value: 'long-term' },
-            { text: 'Aclarar qué quiero lograr y por dónde empezar.', value: 'tests' },
-        ],
-        next: (choice) => {
-            if (choice === 'urgent') return 'urgent_refine';
-            if (choice === 'long-term') return 'long-term_refine';
-            if (choice === 'tests') return 'result';
-            return 'start';
-        }
-    },
-    'urgent_refine': {
-        question: '¿Tienes claro el resultado que quieres?',
-        options: [
-            { text: 'Sí, totalmente claro.', value: 'chispa' },
-            { text: 'Más o menos, necesito afinarlo.', value: 'chispa' },
-        ],
-        next: () => 'result'
-    },
-    'long-term_refine': {
-        question: '¿Podrías dedicar unas horas a la semana en los próximos meses?',
-        options: [
-            { text: 'Sí, sin problema.', value: 'enciende' },
-            { text: 'No estoy seguro por mi agenda.', value: 'chispa' },
-        ],
-        next: () => 'result'
-    }
-};
-
-const resultsData = {
-    'chispa': {
-        title: 'Claridad en 90 minutos',
-        subtitle: 'Una sesión para ordenar ideas y salir con un plan realista desde hoy.',
-        cta: 'Quiero conocer más sobre la sesión',
-        flow: 'chispa'
-    },
-    'enciende': {
-        title: 'Alcanzar una Meta de Alto Impacto en 9 meses',
-        subtitle: 'Un proceso 1 a 1 para sostener tu acción, enfoque y energía.',
-        cta: 'Quiero conocer más sobre el programa',
-        flow: 'enciende'
-    },
-    'tests': {
-        title: '¿Qué necesitas?',
-        subtitle: 'Identifica si es Coaching, Terapia, Mentoría o Consultoría',
-        cta: 'Quiero identificarlo',
-        flow: 'tests'
-    }
-};
-
-const internalFlowsData = {
-    chispa: {
-        title: "Chispa Estratégica",
-        steps: [
-            {
-                title: 'Sesión Chispa Estratégica',
-                content: 'Si sabes lo que quieres pero estás disperso, aquí ponemos orden, foco y pasos claros.',
-                imageUrl: 'https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/chispa-estrategica.png',
-                cta: 'Ver qué incluye'
-            },
-            {
-                title: 'Incluye:',
-                content: (
-                    <ul className="space-y-3 text-gray-600 text-left">
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>90 min virtual</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Coaching + consultoría estratégica</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Minuta con plan de acción</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Opción de seguimiento</span></li>
-                    </ul>
-                ),
-                cta: 'Ver casos de uso'
-            },
-            {
-                title: 'Mis clientes la eligen para:',
-                examples: {
-                    initial: [
-                        { text: 'Decidir si aceptar o no una oferta laboral que implica mudanza a otra ciudad o país.', category: 'Laboral' },
-                        { text: 'Definir los pasos para lanzar un side project sin descuidar su trabajo actual.', category: 'Profesional' },
-                        { text: 'Reestructurar prioridades después de un cambio personal fuerte como una ruptura o la llegada de un hijo.', category: 'Personal' },
-                    ],
-                    additional: [
-                        { text: 'Diseñar un plan claro para pedir un aumento o promoción.', category: 'Laboral' },
-                        { text: 'Aterrizar las ideas para un nuevo producto o servicio que siempre han querido lanzar.', category: 'Profesional' },
-                        { text: 'Organizar un cambio de ciudad sin frenar su crecimiento profesional.', category: 'Profesional/Personal' },
-                        { text: 'Resolver un bloqueo puntual antes de una presentación clave o pitch de inversión.', category: 'Laboral' },
-                        { text: 'Reacomodar metas tras no alcanzar un objetivo importante en su vida o carrera.', category: 'Profesional/Personal' }
-                    ]
-                },
-                cta: 'Agenda tu Sesión de 90 minutos',
-                isFinal: true,
-            }
-        ]
-    },
-    enciende: {
-        title: "Programa: Enciende tu Dirección",
-        steps: [
-            {
-                title: 'Programa Enciende tu Dirección',
-                content: 'Si quieres un giro profundo y estás listo para sostenerlo, aquí trazamos y seguimos tu ruta.',
-                imageUrl: 'https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/programa.png',
-                cta: 'Ver qué incluye'
-            },
-            {
-                title: 'Incluye:',
-                content: (
-                     <ul className="space-y-3 text-gray-600 text-left">
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>9 meses</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Fases de activación y consolidación</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Plan personalizado para tu meta de alto impacto</span></li>
-                        <li className="flex items-start"><CheckIcon className="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0" /><span>Entrenamiento mental y seguimiento</span></li>
-                    </ul>
-                ),
-                cta: 'Continuar'
-            },
-            {
-                title: 'Programa Enciende tu Dirección',
-                content: (
-                    <div className="w-full max-w-[280px] mx-auto">
-                        <div className="relative" style={{paddingTop: '177.77%'}}>
-                            <iframe className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube-nocookie.com/embed/qzc22YT98ug" title="Video explicativo del programa Enciende tu Dirección" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                        </div>
-                    </div>
-                ),
-                cta: 'Ver casos de uso'
-            },
-            {
-                title: 'Mis clientes lo eligen para:',
-                examples: {
-                    initial: [
-                        { text: 'Salir del burnout y reenfocar su carrera hacia un rol con propósito y mejor calidad de vida.', category: 'Laboral/Profesional' },
-                        { text: 'Sostener la disciplina y energía para emprender un negocio propio mientras mantienen su empleo actual.', category: 'Profesional' },
-                        { text: 'Ejecutar un plan de cambio de industria —por ejemplo, de banca a tecnología— con un plan claro y seguimiento constante.', category: 'Laboral/Profesional' },
-                    ],
-                    additional: [
-                        { text: 'Escalar de coordinación a dirección en menos de un año, desarrollando liderazgo sólido.', category: 'Laboral' },
-                        { text: 'Rediseñar su plan profesional tras vender una empresa y prepararte para tu siguiente gran reto.', category: 'Profesional' },
-                        { text: 'Recuperar motivación y foco después de un despido y relanzar tu carrera con dirección.', category: 'Laboral/Personal' },
-                        { text: 'Asumir tu primer liderazgo de un equipo internacional con seguridad y visión estratégica.', category: 'Laboral' },
-                        { text: 'Planear un año sabático productivo, con objetivos claros y un plan de retorno que te potencie.', category: 'Profesional/Personal' }
-                    ]
-                },
-                cta: 'Agenda tu Videollamada Gratuita',
-                isFinal: true,
-            }
-        ]
-    },
-    tests: {
-        title: "Aclaremos qué necesitas",
-        steps: [
-            {
-                title: '',
-                isFinal: true,
-                customCta: (handleStartTest) => (
-                    <div className="w-full space-y-8 text-center">
-                        <div>
-                            <p className="mb-2 text-gray-800 font-serif-display text-xl">¿Necesitas sanar o avanzar?</p>
-                            <button onClick={() => handleStartTest('terapia-coaching')} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
-                                Explorar Terapia o Coaching
-                            </button>
-                        </div>
-                        <div>
-                            <p className="mb-2 text-gray-800 font-serif-display text-xl">¿Tu prioridad es inspiración, guía táctica o claridad interna?</p>
-                            <button onClick={() => handleStartTest('mentoria-coaching')} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
-                                Explorar Mentoría, Consultoría o Coaching
-                            </button>
-                        </div>
-                    </div>
-                )
-            }
-        ]
-    }
-};
-
-
-// --- Main App Component ---
-
-export default function App() {
-    // --- STATE MANAGEMENT ---
-    const [screen, setScreen] = useState('welcome');
-    const [quizStep, setQuizStep] = useState('start');
-    const [userChoices, setUserChoices] = useState({});
-    const [resultKey, setResultKey] = useState(null);
-    const [flowType, setFlowType] = useState(null);
-    const [flowStep, setFlowStep] = useState(0);
-    const [activeTest, setActiveTest] = useState(null);
-    const [accordionShouldBeOpen, setAccordionShouldBeOpen] = useState(false);
-
-    // --- PERSISTENCE & HISTORY ---
-    useEffect(() => {
-        const savedState = localStorage.getItem('appState');
-        if (savedState) {
-            const state = JSON.parse(savedState);
-            setScreen(state.screen || 'welcome');
-            setQuizStep(state.quizStep || 'start');
-            setUserChoices(state.userChoices || {});
-            setResultKey(state.resultKey || null);
-            setFlowType(state.flowType || null);
-            setFlowStep(state.flowStep || 0);
-            setActiveTest(state.activeTest || null);
-        }
-        
-        const handlePopState = (event) => {
-            if(event.state){
-                setScreen(event.state.screen);
-                setQuizStep(event.state.quizStep);
-                setUserChoices(event.state.userChoices);
-                setResultKey(event.state.resultKey);
-                setFlowType(event.state.flowType);
-                setFlowStep(event.state.flowStep);
-                setActiveTest(event.state.activeTest);
-            }
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
-
-    useEffect(() => {
-        const state = { screen, quizStep, userChoices, resultKey, flowType, flowStep, activeTest };
-        localStorage.setItem('appState', JSON.stringify(state));
-        history.pushState(state, '');
-    }, [screen, quizStep, userChoices, resultKey, flowType, flowStep, activeTest]);
-
-    // --- LOGIC ---
-    const handleStart = () => setScreen('quiz');
-
-    const handleQuizOptionSelect = (optionValue, nextStepKey) => {
-        const newChoices = { ...userChoices, [quizStep]: optionValue };
-        setUserChoices(newChoices);
-        
-        if (nextStepKey === 'result') {
-            setResultKey(optionValue);
-            setScreen('result');
-        } else {
-            setQuizStep(nextStepKey);
-        }
-    };
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descubre tu Acompañamiento Ideal</title>
     
-    const handleStartFlow = (type) => {
-        setActiveTest(null);
-        setAccordionShouldBeOpen(false);
-        setFlowType(type);
-        setFlowStep(0);
-        setScreen('flow');
-    };
-
-    const handleNextFlowStep = () => {
-        const currentFlowData = internalFlowsData[flowType];
-        if (flowStep < currentFlowData.steps.length - 1) {
-            setFlowStep(flowStep + 1);
-        } else {
-            if (flowType === 'chispa') {
-                window.open('https://tr.ee/KGIHZE', '_blank', 'noopener,noreferrer');
-            } else if (flowType === 'enciende') {
-                window.open('https://tr.ee/QiH9Uw', '_blank', 'noopener,noreferrer');
-            }
-        }
-    };
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    const handlePreviousFlowStep = () => {
-        if (flowStep > 0) {
-            setFlowStep(flowStep - 1);
-        } else {
-            handleBackToResult();
-        }
-    };
-
-    const handleBackToResult = () => {
-        setFlowType(null);
-        setFlowStep(0);
-        setScreen('result');
-    };
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;700&display=swap" rel="stylesheet">
     
-    const handleReset = () => {
-        localStorage.removeItem('appState');
-        setScreen('welcome');
-        setQuizStep('start');
-        setUserChoices({});
-        setResultKey(null);
-        setFlowType(null);
-        setFlowStep(0);
-        setActiveTest(null);
-    };
-    
-    const handleExitTest = () => {
-        setActiveTest(null);
-        setAccordionShouldBeOpen(true);
-        setScreen('result');
-    };
-
-    // --- RENDER LOGIC ---
-    const renderScreen = () => {
-        if (activeTest === 'terapia-coaching') {
-            return <TerapiaCoachingTest onExit={handleExitTest} onStartFlow={handleStartFlow} />;
+    <style>
+        /* Custom styles and font setup */
+        body {
+            font-family: 'Open Sans', sans-serif;
         }
-        if (activeTest === 'mentoria-coaching') {
-            return <MentoriaCoachingTest onExit={handleExitTest} onStartFlow={handleStartFlow} />;
+        .font-serif-display {
+            font-family: 'Source Serif 4', serif;
         }
-
-        switch (screen) {
-            case 'welcome': return <WelcomeScreen onStart={handleStart} />;
-            case 'quiz': return <QuizScreen stepKey={quizStep} onSelect={handleQuizOptionSelect} />;
-            case 'result': return <ResultScreen resultKey={resultKey} onStartFlow={handleStartFlow} onReset={handleReset} defaultOpenAccordion={accordionShouldBeOpen} />;
-            case 'flow': return <InternalFlow flowType={flowType} step={flowStep} onNext={handleNextFlowStep} onPrevious={handlePreviousFlowStep} onBackToResult={handleBackToResult} onStartTest={setActiveTest} />;
-            default: return <WelcomeScreen onStart={handleStart} />;
+        /* Screen transitions */
+        .screen {
+            transition: opacity 0.5s ease-in-out;
         }
-    };
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    return (
-        <>
-            <FontLoader />
-            <style>{`
-                body { font-family: 'Open Sans', sans-serif; }
-                .font-serif-display { font-family: 'Source Serif 4', serif; }
-                @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-                .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
-            `}</style>
-            <div className="bg-gray-100 flex items-center justify-center min-h-screen p-4 font-sans">
-                <div className="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="p-6 md:p-8">
-                        {renderScreen()}
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
+    <main id="app-container" class="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8 overflow-hidden">
+        <!-- All screens will be injected here by JavaScript -->
+    </main>
 
-// --- SCREEN COMPONENTS ---
-
-const WelcomeScreen = ({ onStart }) => {
-    const titleRef = useFocusOnMount();
-    return (
-    <div className="text-center animate-fade-in">
-        <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" className="w-[250px] mx-auto mb-8" />
-        <h1 ref={titleRef} tabIndex="-1" className="font-serif-display text-3xl md:text-4xl font-bold text-gray-800 outline-none">Descubre el Acompañamiento Profesional que Necesitas</h1>
-        <p className="mt-4 text-gray-600">Responde unas preguntas y descúbrelo en 5 minutos.</p>
-        <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/acom.png" alt="Acompañamiento Profesional" className="w-[300px] mx-auto my-8" />
-        <button onClick={onStart} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold text-lg">
-            Comenzar ahora
-        </button>
-        <p className="mt-4 text-sm text-gray-500">Más rápido que decidir tu próximo café.</p>
-    </div>
-)};
-
-const QuizScreen = ({ stepKey, onSelect }) => {
-    const titleRef = useFocusOnMount();
-    const currentQuestion = quizData[stepKey];
-    return (
-        <div className="animate-fade-in">
-            <h2 ref={titleRef} tabIndex="-1" className="font-serif-display text-2xl font-bold text-gray-800 mb-6 text-center outline-none">{currentQuestion.question}</h2>
-            <div role="radiogroup" className="space-y-4">
-                {currentQuestion.options.map((option, index) => (
-                    <button 
-                        key={`${option.value}-${index}`}
-                        role="radio"
-                        aria-checked="false"
-                        onClick={() => onSelect(option.value, currentQuestion.next(option.value))}
-                        className="w-full text-left px-6 py-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-[#f9442c] focus:outline-none focus:ring-2 focus:ring-[#f9442c] focus:ring-offset-2"
-                    >
-                        {option.text}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-const ResultScreen = ({ resultKey, onStartFlow, onReset, defaultOpenAccordion }) => {
-    const titleRef = useFocusOnMount();
-    const [isAccordionOpen, setIsAccordionOpen] = useState(defaultOpenAccordion || false);
-    
-    if(!resultKey || !resultsData[resultKey]) {
-        useEffect(() => onReset(), []);
-        return null;
-    }
-
-    const result = resultsData[resultKey];
-    const otherOptions = Object.keys(resultsData)
-        .filter(key => key !== resultKey)
-        .map(key => ({ key, ...resultsData[key] }));
-
-    return (
-        <div className="text-center animate-fade-in">
-             <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" className="w-[150px] mx-auto mb-6" />
-            <div className="mb-6">
-                <h2 ref={titleRef} tabIndex="-1" className="font-serif-display text-2xl font-bold text-gray-800 outline-none">{result.title}</h2>
-                <p className="mt-2 text-gray-600">{result.subtitle}</p>
-            </div>
-            <button onClick={() => onStartFlow(result.flow)} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
-                {result.cta}
-            </button>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
             
-            <div className="mt-8 pt-6 border-t">
-                <button 
-                    onClick={() => setIsAccordionOpen(!isAccordionOpen)} 
-                    className="w-full flex justify-between items-center text-left py-2"
-                >
-                    <h3 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${isAccordionOpen ? 'text-[#f9442c]' : 'text-gray-500'}`}>Otras opciones</h3>
-                    <ChevronDownIcon className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isAccordionOpen && (
-                    <div className="mt-3 space-y-3 animate-fade-in">
-                        {otherOptions.map(option => (
-                            <button key={option.key} onClick={() => onStartFlow(option.flow)} className="text-left w-full p-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                <p className="font-serif-display font-semibold text-gray-800">{option.title.split('.')[0]}.</p>
-                                <p className="text-sm text-gray-600">{option.subtitle}</p>
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
-            <button onClick={onReset} className="mt-6 text-sm text-gray-500 hover:text-[#f9442c]">Empezar de nuevo</button>
-        </div>
-    );
-};
+            const appContainer = document.getElementById('app-container');
+            let appState = {
+                screen: 'welcome',
+                quizStep: 'start',
+                userChoices: {},
+                resultKey: null,
+                flowType: null,
+                activeTest: null,
+                accordionShouldBeOpen: false,
+            };
 
-const ExampleItem = ({ text, category }) => (
-    <li className="flex items-start space-x-3 py-1">
-        <span className="text-gray-400 mt-1">-</span>
-        <span className="text-gray-600 text-left text-sm flex-1">{text}</span>
-        <span className="flex-shrink-0 text-xs text-white bg-gray-400 px-2 py-0.5 rounded-full">{category}</span>
-    </li>
-);
+            // --- DATA MODELS ---
+            const quizData = {
+                'start': {
+                    question: 'Hoy necesito…',
+                    options: [
+                        { text: 'Resolver algo urgente que no puede esperar.', value: 'urgent' },
+                        { text: 'Avanzar hacia mis metas con apoyo constante.', value: 'long-term' },
+                        { text: 'Aclarar qué quiero lograr y por dónde empezar.', value: 'tests' },
+                    ],
+                    next: (choice) => {
+                        if (choice === 'urgent') return 'urgent_refine';
+                        if (choice === 'long-term') return 'long-term_refine';
+                        if (choice === 'tests') return 'result';
+                        return 'start';
+                    }
+                },
+                'urgent_refine': {
+                    question: '¿Tienes claro el resultado que quieres?',
+                    options: [
+                        { text: 'Sí, totalmente claro.', value: 'chispa' },
+                        { text: 'Más o menos, necesito afinarlo.', value: 'chispa' },
+                    ],
+                    next: () => 'result'
+                },
+                'long-term_refine': {
+                    question: '¿Podrías dedicar unas horas a la semana en los próximos meses?',
+                    options: [
+                        { text: 'Sí, sin problema.', value: 'enciende' },
+                        { text: 'No estoy seguro por mi agenda.', value: 'chispa' },
+                    ],
+                    next: () => 'result'
+                }
+            };
 
-const InternalFlow = ({ flowType, step, onNext, onPrevious, onBackToResult, onStartTest }) => {
-    const titleRef = useFocusOnMount();
-    const [examplesExpanded, setExamplesExpanded] = useState(false);
-    const flowData = internalFlowsData[flowType];
-    const currentStepData = flowData.steps[step];
+            const resultsData = {
+                'chispa': {
+                    title: 'Claridad en 90 minutos',
+                    subtitle: 'Una sesión para ordenar ideas y salir con un plan realista desde hoy.',
+                    cta: 'Quiero conocer más sobre la sesión',
+                    flow: 'chispa'
+                },
+                'enciende': {
+                    title: 'Alcanzar una Meta de Alto Impacto en 9 meses',
+                    subtitle: 'Un proceso 1 a 1 para sostener tu acción, enfoque y energía.',
+                    cta: 'Quiero conocer más sobre el programa',
+                    flow: 'enciende'
+                },
+                'tests': {
+                    title: '¿Qué necesitas?',
+                    subtitle: 'Identifica si es Coaching, Terapia, Mentoría o Consultoría',
+                    cta: 'Quiero identificarlo',
+                    flow: 'tests'
+                }
+            };
 
-    useEffect(() => {
-        setExamplesExpanded(false);
-    }, [step, flowType]);
+            const internalFlowsData = {
+                chispa: {
+                    title: "Chispa Estratégica — Sesión Única de 90 min",
+                    subtitle: "Sales con un plan de acción claro y realista desde hoy, para tomar decisiones con foco, motivación y confianza.",
+                    cta: 'Reservar mi sesión de 90 min ahora',
+                    includes: [
+                        '90 minutos en vivo (virtual)',
+                        'Coaching + consultoría estratégica',
+                        'Minuta con plan de acción personalizado',
+                        'Opción de seguimiento (60 min)',
+                        'Con Costo — cupo: 3 sesiones/semana'
+                    ],
+                    description: 'Ideal si tienes claro lo que quieres pero te sientes disperso o estancado. Saldrás con ideas ordenadas, prioridades definidas y pasos inmediatos para avanzar.'
+                },
+                enciende: {
+                    title: "Enciende tu Dirección — Proceso 1 a 1 de 9 meses",
+                    subtitle: "Transforma tu forma de trabajar y alcanza una Meta de Alto Impacto con acompañamiento sostenido, claridad y energía renovada.",
+                    cta: 'Agendar mi videollamada gratuita',
+                    includes: [
+                        '9 meses de acompañamiento',
+                        'Fases de activación y consolidación',
+                        'Plan personalizado para tu meta',
+                        'Entrenamiento mental y seguimiento',
+                        'Videollamada inicial gratuita — espacios limitados'
+                    ],
+                    description: 'Pensado para un cambio profundo que no se apaga a las semanas. Recuperarás energía, disciplina y dirección para ejecutar una meta ambiciosa sin perder equilibrio personal.'
+                },
+                tests: {
+                    title: "Aclaremos qué necesitas",
+                    steps: [
+                        {
+                            title: '',
+                            isFinal: true,
+                            customCta: () => (
+                                `<div class="w-full space-y-8 text-center">
+                                    <div>
+                                        <p class="mb-2 text-gray-800 font-serif-display text-xl">¿Necesitas sanar o avanzar?</p>
+                                        <button data-test-type="terapia-coaching" class="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
+                                            Explorar Terapia o Coaching
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <p class="mb-2 text-gray-800 font-serif-display text-xl">¿Tu prioridad es inspiración, guía táctica o claridad interna?</p>
+                                        <button data-test-type="mentoria-coaching" class="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
+                                            Explorar Mentoría, Consultoría o Coaching
+                                        </button>
+                                    </div>
+                                </div>`
+                            )
+                        }
+                    ]
+                }
+            };
+            
+            // --- RENDER FUNCTIONS ---
+            function render() {
+                appContainer.innerHTML = ''; // Clear previous content
+                let content = '';
 
-    return (
-        <div className="animate-fade-in">
-             <button onClick={onPrevious} className="flex items-center text-sm text-gray-500 hover:text-[#f9442c] mb-4">
-                <BackArrowIcon />
-                Regresar
-            </button>
-            <div className="text-center">
-                <h2 ref={titleRef} tabIndex="-1" className="font-serif-display text-2xl font-bold text-gray-800 outline-none">{currentStepData.title}</h2>
-                <div className="mt-4 text-gray-600 text-left leading-relaxed">
-                    {currentStepData.imageUrl && <img src={currentStepData.imageUrl} alt={currentStepData.title} className="w-[300px] mx-auto mb-4 rounded-lg" />}
-                    {currentStepData.content && (typeof currentStepData.content === 'string' ? <p>{currentStepData.content}</p> : currentStepData.content)}
-                    {currentStepData.examples && (
-                        <ul className="space-y-2 mt-4">
-                            {currentStepData.examples.initial.map((item, index) => (
-                                <ExampleItem key={`initial-${index}`} {...item} />
-                            ))}
-                            {examplesExpanded && currentStepData.examples.additional.map((item, index) => (
-                                <ExampleItem key={`additional-${index}`} {...item} />
-                            ))}
-                        </ul>
-                    )}
-                </div>
-                
-                <div className="mt-8 space-y-4">
-                    {currentStepData.customCta ? (
-                        currentStepData.customCta(onStartTest)
-                    ) : (
-                        <>
-                            {currentStepData.examples && !examplesExpanded && (
-                                <button onClick={() => setExamplesExpanded(true)} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-200 text-gray-800 font-semibold">
-                                    Ver más ejemplos
-                                </button>
-                            )}
-                             <button onClick={onNext} className="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
-                                {currentStepData.cta}
-                            </button>
-                        </>
-                    )}
-                </div>
+                if (appState.activeTest === 'terapia-coaching') {
+                    // This would be the TerapiaCoachingTest component logic, simplified here
+                    content = `<div>Terapia/Coaching Test Placeholder <button class="js-exit-test">Exit</button></div>`;
+                } else if (appState.activeTest === 'mentoria-coaching') {
+                    // This would be the MentoriaCoachingTest component logic, simplified here
+                    content = `<div>Mentoria/Coaching Test Placeholder <button class="js-exit-test">Exit</button></div>`;
+                } else {
+                    switch (appState.screen) {
+                        case 'welcome':
+                            content = renderWelcomeScreen();
+                            break;
+                        case 'quiz':
+                            content = renderQuizScreen();
+                            break;
+                        case 'result':
+                            content = renderResultScreen();
+                            break;
+                        case 'flow':
+                            content = renderInternalFlow();
+                            break;
+                    }
+                }
+                appContainer.innerHTML = content;
+                addEventListeners();
+            }
 
-                {currentStepData.isFinal && (
-                     <div className="mt-4">
-                        <button onClick={onBackToResult} className="text-sm text-gray-500 hover:text-[#f9442c]">
-                            Volver a los resultados
+            function renderWelcomeScreen() {
+                return `
+                    <div class="text-center animate-fade-in">
+                        <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[250px] mx-auto mb-8" />
+                        <h1 class="font-serif-display text-3xl md:text-4xl font-bold text-gray-800">Descubre el Acompañamiento Profesional que Necesitas</h1>
+                        <p class="mt-4 text-gray-600">En menos de 2 minutos sabrás si lo que necesitas es Coaching Profesional o algo diferente. Y si es Coaching, te mostraré el servicio perfecto para ti. Si no, te daré recursos para avanzar.</p>
+                        <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/acom.png" alt="Acompañamiento Profesional" class="w-[300px] mx-auto my-8" />
+                        <button id="start-btn" class="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold text-lg">
+                            Comenzar ahora
                         </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// --- TERAPIA VS COACHING TEST COMPONENT ---
-
-const terapiaCoachingQuestions = [
-    { text: "¿Qué te está drenando más últimamente?", options: [ { text: "Me desbordan emociones que no entiendo ni puedo controlar.", type: "terapia-2" }, { text: "Me cuesta manejar la ansiedad o el bajón emocional.", type: "terapia-1" }, { text: "Me siento confundido, emocional y mentalmente.", type: "ambos-1-1" }, { text: "Estoy desmotivado, pero quiero estructurarme.", type: "coaching-1" }, { text: "Sé lo que quiero, pero no avanzo.", type: "coaching-2" } ] },
-    { text: "¿Qué te ayudaría esta semana?", options: [ { text: "Llorar sin juicio y sentirme contenido.", type: "terapia-2" }, { text: "Hablar con alguien que entienda lo que siento.", type: "terapia-1" }, { text: "Poner orden a lo que siento y pienso.", type: "ambos-1-1" }, { text: "Hacer una lista clara de mis pendientes.", type: "coaching-1" }, { text: "Saber hacia dónde moverme.", type: "coaching-2" } ] },
-    { text: "¿Cómo describes tu presente emocional?", options: [ { text: "Me siento roto o atrapado.", type: "terapia-2" }, { text: "Estoy perdido, pero sigo funcionando.", type: "terapia-1" }, { text: "Quiero un cambio, pero no sé si emocional o estratégico.", type: "ambos-1-1" }, { text: "Me siento estancado, pero listo para avanzar.", type: "coaching-1" }, { text: "Tengo claridad, pero no ejecuto.", type: "coaching-2" } ] },
-    { text: "¿Qué frase te representa mejor?", options: [ { text: "Necesito entender lo que siento antes de decidir.", type: "terapia-2" }, { text: "Quiero sanar antes de avanzar.", type: "terapia-1" }, { text: "Busco claridad emocional y dirección.", type: "ambos-1-1" }, { text: "Quiero ordenar mis ideas para actuar.", type: "coaching-1" }, { text: "Estoy listo para avanzar, aunque no tenga todo resuelto.", type: "coaching-2" } ] },
-    { text: "¿Qué esperas de un acompañamiento?", options: [ { text: "Un espacio seguro para soltar lo que cargo.", type: "terapia-2" }, { text: "Ser escuchado sin juicio.", type: "terapia-1" }, { text: "Escucha y dirección en balance.", type: "ambos-1-1" }, { text: "Estrategias claras para recuperar foco.", type: "coaching-1" }, { text: "Un impulso que me active.", type: "coaching-2" } ] },
-    { text: "¿Cómo despiertas últimamente?", options: [ { text: "Con ansiedad o tristeza sin motivo claro.", type: "terapia-2" }, { text: "Con apatía, aunque arranco el día.", type: "terapia-1" }, { text: "Subo y bajo, según el día.", type: "ambos-1-1" }, { text: "Me cuesta enfocar, pero sé que puedo más.", type: "coaching-1" }, { text: "Me despierto con ideas, pero sin plan.", type: "coaching-2" } ] },
-    { text: "¿Cuál sería un buen primer paso para ti?", options: [ { text: "Aceptar lo que siento sin huir ni juzgarme.", type: "terapia-2" }, { text: "Tener un espacio para hablar de lo que duele.", type: "terapia-1" }, { text: "Explorar emociones y metas a la vez.", type: "ambos-1-1" }, { text: "Definir prioridades con claridad.", type: "coaching-1" }, { text: "Crear un plan realista y ponerlo en marcha.", type: "coaching-2" } ] }
-];
-
-const TerapiaCoachingTest = ({ onExit, onStartFlow }) => {
-    const [screen, setScreen] = useState('question');
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState([]);
-    const [resultType, setResultType] = useState(null);
-
-    const handleAnswer = (type) => {
-        const newAnswers = [...answers, type];
-        setAnswers(newAnswers);
-        if (currentIndex < terapiaCoachingQuestions.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-        } else {
-            calculateResult(newAnswers);
-        }
-    };
-    
-    const calculateResult = (finalAnswers) => {
-        let scores = { terapia: 0, coaching: 0 };
-        finalAnswers.forEach(answer => {
-            const parts = answer.split('-');
-            const category = parts[0];
-            if (category === 'terapia') scores.terapia += parseInt(parts[1], 10);
-            else if (category === 'coaching') scores.coaching += parseInt(parts[1], 10);
-            else if (category === 'ambos') {
-                scores.terapia += parseInt(parts[1], 10);
-                scores.coaching += parseInt(parts[2], 10);
+                        <p class="mt-4 text-sm text-gray-500">Más rápido que decidir tu próximo café.</p>
+                    </div>`;
             }
-        });
 
-        let finalResultType;
-        const terapiaPts = scores.terapia;
-        const coachingPts = scores.coaching;
-        
-        if (terapiaPts >= 9 && (terapiaPts - coachingPts) >= 3) finalResultType = 'terapia';
-        else if (coachingPts >= 9 && (coachingPts - terapiaPts) >= 3) finalResultType = 'coaching';
-        else if ((terapiaPts >= 6 && coachingPts >= 6) || (Math.abs(terapiaPts - coachingPts) <= 2 && terapiaPts >= 5 && coachingPts >= 5)) finalResultType = 'ambos';
-        else {
-            if (terapiaPts > coachingPts) finalResultType = 'terapia';
-            else if (coachingPts > terapiaPts) finalResultType = 'coaching';
-            else finalResultType = 'ambos';
-        }
-
-        if(finalResultType === 'coaching'){
-             setScreen('coachingOptions');
-        } else {
-            setResultType(finalResultType);
-            setScreen('result');
-        }
-    };
-
-    const handleGoBack = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex(currentIndex - 1);
-            setAnswers(answers.slice(0, -1));
-        } else {
-            onExit();
-        }
-    };
-
-    const renderContent = () => {
-        if (screen === 'result') {
-            const results = {
-                terapia: { title: "Hoy necesitas atender tu mundo emocional antes de decidir tus siguientes pasos…", text: "", ctas: [{ text: "Quiero saber cómo elegir a mi terapeuta", action: 'terapiaVideo' }] },
-                ambos: { title: "No tienes que elegir entre sanar o avanzar. Podemos trabajar ambos frentes…", text: "", ctas: [{ text: "Quiero saber cómo elegir a mi terapeuta", action: 'terapiaVideo' }, { text: "Quiero conocer tus servicios de Coaching", action: 'coachingOptions' }] }
-            };
-            const resultData = results[resultType];
-            if (!resultData) return null;
-            const { title, text, ctas } = resultData;
-            return (
-                <div className="text-center">
-                    <h2 className="font-serif-display text-2xl font-bold text-gray-800">{title}</h2>
-                    <p className="mt-4 text-gray-600">{text}</p>
-                    <div className="mt-8 space-y-4">
-                        {ctas.map(cta => (
-                             <button key={cta.action} onClick={() => cta.isFlow ? onStartFlow(cta.action) : setScreen(cta.action)} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">
-                                {cta.text}
-                            </button>
-                        ))}
-                    </div>
-                     <div className="mt-6 border-t pt-6 space-y-2">
-                        <button onClick={onExit} className="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Volver a mis resultados</button>
-                    </div>
-                </div>
-            )
-        }
-        
-        if (screen === 'question') {
-            const question = terapiaCoachingQuestions[currentIndex];
-            return (
-                <div>
-                    <button onClick={handleGoBack} className="flex items-center text-sm text-gray-500 hover:text-[#f9442c] mb-4">
-                        <BackArrowIcon />
-                        Regresar
+            function renderQuizScreen() {
+                const currentQuestion = quizData[appState.quizStep];
+                const optionsHtml = currentQuestion.options.map((option, index) => `
+                    <button 
+                        data-value="${option.value}"
+                        data-next="${currentQuestion.next(option.value)}"
+                        class="js-quiz-option w-full text-left px-6 py-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-[#f9442c] focus:outline-none focus:ring-2 focus:ring-[#f9442c] focus:ring-offset-2">
+                        ${option.text}
                     </button>
-                    <p className="text-sm font-semibold text-center text-[#f9442c]">Pregunta {currentIndex + 1} de {terapiaCoachingQuestions.length}</p>
-                    <h2 className="font-serif-display text-2xl font-bold text-gray-800 mt-4 text-center">{question.text}</h2>
-                    <div className="mt-6 space-y-4">
-                        {question.options.map(opt => (
-                            <button key={opt.type} onClick={() => handleAnswer(opt.type)} className="w-full text-left px-6 py-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-[#f9442c]">
-                                {opt.text}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )
-        }
+                `).join('');
 
-        if(screen === 'terapiaVideo') {
-            return (
-                <div className="text-center">
-                    <h2 className="font-serif-display text-2xl font-bold text-gray-800 mb-4">¿Cómo elegir a mi terapeuta?</h2>
-                    <div className="w-full"><div className="relative" style={{paddingTop: '56.25%'}}><iframe className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/RGIZhaqWeLE" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div></div>
-                    <button onClick={() => setScreen('result')} className="mt-4 text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Volver a mis resultados</button>
-                </div>
-            )
-        }
-
-        if(screen === 'coachingOptions') {
-             return (
-                <div className="text-center">
-                     <h2 className="font-serif-display text-2xl font-bold text-gray-800 mb-4">El Coaching Profesional es tu acompañamiento ideal</h2>
-                     <div className="text-center mb-6">
-                         <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/chispa-estrategica.png" alt="Sesión Chispa Estratégica" className="w-[300px] mx-auto mb-4 rounded-lg" />
-                         <h3 className="font-serif-display text-xl text-gray-800 mb-2">Claridad inmediata</h3>
-                         <p className="text-gray-600 mb-4">Una sesión única para ordenar ideas y salir con un plan claro.</p>
-                         <button onClick={() => onStartFlow('chispa')} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">Quiero conocer mas sobre la sesión</button>
-                     </div>
-                     <div className="text-center">
-                         <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/programa.png" alt="Programa Enciende tu Dirección" className="w-[300px] mx-auto mb-4 rounded-lg" />
-                         <h3 className="font-serif-display text-xl text-gray-800 mb-2">Acompañamiento sostenido</h3>
-                         <p className="text-gray-600 mb-4">Un proceso de 9 meses para ganar confianza, motivación y dirección.</p>
-                         <button onClick={() => onStartFlow('enciende')} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">Quiero conocer mas sobre el programa</button>
-                     </div>
-                     <div className="mt-8 text-center">
-                         <button onClick={onExit} className="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Volver a los resultados</button>
-                     </div>
-                </div>
-            )
-        }
-    };
-
-    return <div>{renderContent()}</div>;
-};
-
-// --- MENTORIA VS COACHING TEST COMPONENT ---
-
-const mentoriaCoachingQuestions = [
-    { text: "¿En qué etapa estás hoy?", options: [ { text: "Sé hacia dónde voy y quiero aprender de alguien que ya lo logró", type: "mentoria" }, { text: "Ya tengo mi plan de acción, pero necesito recomendaciones para alcanzar acciones específicas", type: "consultoria" }, { text: "Estoy definiendo mi meta y quiero descubrir mi mejor camino", type: "coaching" } ] },
-    { text: "¿Qué esperas del acompañamiento?", options: [ { text: "Inspiración práctica basada en experiencia real", type: "mentoria" }, { text: "Un guía que me entregue una ruta clara, con pasos y herramientas aplicables", type: "consultoria" }, { text: "Claridad interna para decidir con confianza y dirección", type: "coaching" } ] },
-    { text: "¿Qué tipo de claridad te hace más falta hoy?", options: [ { text: "Cómo lo han hecho otros en mi situación", type: "mentoria" }, { text: "Qué hacer específicamente para lograr lo que quiero", type: "consultoria" }, { text: "Qué es lo que verdaderamente quiero lograr y por qué", type: "coaching" } ] },
-    { text: "¿Qué prefieres recibir en las sesiones?", options: [ { text: "Consejos de alguien que ya pasó por lo mismo", type: "mentoria" }, { text: "Un plan de acción diseñado para mi caso", type: "consultoria" }, { text: "Espacio para ordenar mis ideas, desbloquearme y tomar decisiones", type: "coaching" } ] },
-    { text: "¿Qué describe mejor tu proceso actual?", options: [ { text: "Quiero avanzar con respaldo de alguien que ya lo logró", type: "mentoria" }, { text: "Estoy listo(a) para ejecutar, pero necesito precisión táctica", type: "consultoria" }, { text: "Estoy en etapa de exploración, quiero alinear ideas, emociones y dirección", type: "coaching" } ] },
-    { text: "¿Cómo te relacionas con tus decisiones?", options: [ { text: "Las tengo claras, pero quiero evitar errores comunes", type: "mentoria" }, { text: "Ya decidí, pero no sé exactamente cómo hacerlo funcionar", type: "consultoria" }, { text: "Me cuesta decidir o confiar en mi decisión", type: "coaching" } ] },
-    { text: "¿Qué te haría sentir más acompañado en este momento?", options: [ { text: "Un modelo de éxito con el que identificarme", type: "mentoria" }, { text: "Una guía con pasos probados para aplicar", type: "consultoria" }, { text: "Una conversación profunda para elegir desde mí", type: "coaching" } ] },
-    { text: "¿Qué resultado te haría decir: “valió la pena”?", options: [ { text: "Tener acceso a la experiencia de alguien que ya logró lo que quiero", type: "mentoria" }, { text: "Recibí las respuestas y guías tácticas que buscaba", type: "consultoria" }, { text: "Tomar decisiones propias con foco, confianza y dirección", type: "coaching" } ] },
-    { text: "¿Qué etapa necesitas fortalecer primero?", options: [ { text: "El cómo lo hicieron otros", type: "mentoria" }, { text: "El cómo hacerlo paso a paso", type: "consultoria" }, { text: "El qué quiero lograr, por qué y hacia dónde voy", type: "coaching" } ] }
-];
-
-const MentoriaCoachingTest = ({ onExit, onStartFlow }) => {
-    const [screen, setScreen] = useState('question');
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState([]);
-    const [resultType, setResultType] = useState(null);
-
-    const handleAnswer = (type) => {
-        const newAnswers = [...answers, type];
-        setAnswers(newAnswers);
-        if (currentIndex < mentoriaCoachingQuestions.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-        } else {
-            calculateResult(newAnswers);
-        }
-    };
-    
-    const calculateResult = (finalAnswers) => {
-        let scores = { mentoria: 0, consultoria: 0, coaching: 0 };
-        finalAnswers.forEach(answer => {
-            if (scores[answer] !== undefined) {
-                scores[answer]++;
+                return `
+                    <div class="animate-fade-in">
+                        <h2 class="font-serif-display text-2xl font-bold text-gray-800 mb-6 text-center">${currentQuestion.question}</h2>
+                        <div class="space-y-4">${optionsHtml}</div>
+                    </div>`;
             }
+
+            function renderResultScreen() {
+                 const result = resultsData[appState.resultKey];
+                 if (!result) {
+                     appState.screen = 'welcome';
+                     render();
+                     return;
+                 }
+                const otherOptions = Object.keys(resultsData)
+                    .filter(key => key !== appState.resultKey)
+                    .map(key => ({ key, ...resultsData[key] }));
+
+                return `
+                    <div class="text-center animate-fade-in">
+                         <img src="https://raw.githubusercontent.com/daniel-hd-91-mx/c-acom/main/Logo-Dan-Hernandez_Imagotipo-BLACK.png" alt="Logo" class="w-[150px] mx-auto mb-6" />
+                        <div class="mb-6">
+                            <h2 class="font-serif-display text-2xl font-bold text-gray-800">${result.title}</h2>
+                            <p class="mt-2 text-gray-600">${result.subtitle}</p>
+                        </div>
+                        <button data-flow-type="${result.flow}" class="js-start-flow w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
+                            ${result.cta}
+                        </button>
+                        
+                        <div class="mt-8 pt-6 border-t">
+                            <button id="toggle-accordion" class="w-full flex justify-between items-center text-left py-2">
+                                <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-500">Otras opciones</h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class="w-5 h-5 text-gray-500 transition-transform duration-300"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                            <div id="accordion-content" class="mt-3 space-y-3 animate-fade-in ${appState.accordionShouldBeOpen ? '' : 'hidden'}">
+                                ${otherOptions.map(option => `
+                                    <button data-flow-type="${option.flow}" class="js-start-flow text-left w-full p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <p class="font-serif-display font-semibold text-gray-800">${option.title.split('.')[0]}.</p>
+                                        <p class="text-sm text-gray-600">${option.subtitle}</p>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <button id="reset-btn" class="mt-6 text-sm text-gray-500 hover:text-[#f9442c]">Empezar de nuevo</button>
+                    </div>
+                `;
+            }
+
+            function renderInternalFlow() {
+                const flowData = internalFlowsData[appState.flowType];
+                const { title, subtitle, cta, includes, description } = flowData;
+
+                return `
+                    <div class="animate-fade-in">
+                         <button id="back-to-result" class="flex items-center text-sm text-gray-500 hover:text-[#f9442c] mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class="w-5 h-5 mr-2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                            Regresar
+                        </button>
+                        <div class="text-center">
+                            <h2 class="font-serif-display text-2xl font-bold text-gray-800">${title}</h2>
+                            <p class="mt-2 text-gray-600">${subtitle}</p>
+                            
+                            <div class="mt-8">
+                                <button id="flow-cta" class="w-full text-center px-6 py-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#f9442c] text-white font-semibold">
+                                    ${cta}
+                                </button>
+                            </div>
+
+                            <div class="mt-6 pt-6 border-t text-left">
+                                <ul class="space-y-3 text-gray-600">
+                                    ${includes.map(item => `
+                                        <li class="flex items-start">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" class="w-6 h-6 text-[#f9442c] mr-3 mt-1 flex-shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            <span>${item}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                                <p class="mt-4 text-gray-600">${description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+
+            // --- EVENT HANDLING ---
+            function addEventListeners() {
+                const startBtn = document.getElementById('start-btn');
+                if (startBtn) startBtn.addEventListener('click', () => {
+                    appState.screen = 'quiz';
+                    render();
+                });
+
+                document.querySelectorAll('.js-quiz-option').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const value = btn.dataset.value;
+                        const next = btn.dataset.next;
+                        appState.userChoices[appState.quizStep] = value;
+                        if (next === 'result') {
+                            appState.resultKey = value;
+                            appState.screen = 'result';
+                        } else {
+                            appState.quizStep = next;
+                        }
+                        render();
+                    });
+                });
+                
+                document.querySelectorAll('.js-start-flow').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        appState.flowType = btn.dataset.flowType;
+                        appState.screen = 'flow';
+                        render();
+                    });
+                });
+
+                const resetBtn = document.getElementById('reset-btn');
+                if(resetBtn) resetBtn.addEventListener('click', () => {
+                    appState = { screen: 'welcome', quizStep: 'start', userChoices: {}, resultKey: null, flowType: null, activeTest: null, accordionShouldBeOpen: false };
+                    render();
+                });
+                
+                const backToResultBtn = document.getElementById('back-to-result');
+                if(backToResultBtn) backToResultBtn.addEventListener('click', () => {
+                     appState.screen = 'result';
+                     appState.flowType = null;
+                     render();
+                });
+
+                const flowCta = document.getElementById('flow-cta');
+                if(flowCta) flowCta.addEventListener('click', handleNextFlowStep);
+
+                const accordionBtn = document.getElementById('toggle-accordion');
+                if(accordionBtn) accordionBtn.addEventListener('click', () => {
+                    const content = document.getElementById('accordion-content');
+                    content.classList.toggle('hidden');
+                    accordionBtn.querySelector('h3').classList.toggle('text-[#f9442c]');
+                    accordionBtn.querySelector('h3').classList.toggle('text-gray-500');
+                });
+
+            }
+
+            function handleNextFlowStep() {
+                 if (appState.flowType === 'chispa') {
+                    window.open('https://tr.ee/KGIHZE', '_blank', 'noopener,noreferrer');
+                } else if (appState.flowType === 'enciende') {
+                    window.open('https://tr.ee/QiH9Uw', '_blank', 'noopener,noreferrer');
+                }
+            }
+
+            // --- INITIAL RENDER ---
+            render();
         });
+    </script>
+</body>
+</html>
 
-        let finalResultType = 'coaching';
-        const maxScore = Math.max(scores.mentoria, scores.consultoria, scores.coaching);
-        if (scores.mentoria === maxScore) finalResultType = 'mentoria';
-        else if (scores.consultoria === maxScore) finalResultType = 'consultoria';
-        
-        setResultType(finalResultType);
-        setScreen('result');
-    };
-
-    const handleGoBack = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex(currentIndex - 1);
-            setAnswers(answers.slice(0, -1));
-        } else {
-            onExit();
-        }
-    };
-
-    const renderContent = () => {
-        if (screen === 'result' || screen === 'mentoriaVideo' || screen === 'consultoriaVideo' || screen === 'coachingOptions' ) {
-            const results = {
-                mentoria: { title: `Tu camino ya tiene rumbo. Ahora necesitas inspiración práctica.`, ctas: [{ text: "Quiero saber sobre mentoría", action: 'mentoriaVideo' }] },
-                consultoria: { title: `Ya tienes dirección. Ahora necesitas precisión táctica.`, ctas: [{ text: "Quiero saber sobre consultoría", action: 'consultoriaVideo' }] },
-                coaching: { title: `Antes de avanzar, toca mirar hacia dentro.`, ctas: [{ text: "Quiero descubrir qué tipo de coaching es para mí", action: 'coachingOptions' }] }
-            };
-            const { title, ctas } = results[resultType];
-
-            if(screen === 'mentoriaVideo') return <div className="text-center"><div className="w-full"><div className="relative" style={{paddingTop: '56.25%'}}><iframe className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/l7K9XZq8TfE" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div></div><button onClick={() => setScreen('result')} className="mt-4 text-sm text-gray-500 hover:text-[#f9442c]">Regresar</button></div>
-            if(screen === 'consultoriaVideo') return <div className="text-center"><div className="w-full"><div className="relative" style={{paddingTop: '56.25%'}}><iframe className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/PCpooby3FkM" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div></div><button onClick={() => setScreen('result')} className="mt-4 text-sm text-gray-500 hover:text-[#f9442c]">Regresar</button></div>
-            if(screen === 'coachingOptions') {
-                 return (
-                    <div className="text-center">
-                         <h2 className="font-serif-display text-2xl font-bold text-gray-800 mb-4">El Coaching Profesional es tu acompañamiento ideal</h2>
-                         <div className="text-center mb-6">
-                             <h3 className="font-serif-display text-xl text-gray-800 mb-2">Claridad inmediata</h3>
-                             <p className="text-gray-600 mb-4">Una sesión única para ordenar ideas y salir con un plan claro.</p>
-                             <button onClick={() => onStartFlow('chispa')} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">Quiero conocer mas sobre la sesión</button>
-                         </div>
-                         <div className="text-center">
-                             <h3 className="font-serif-display text-xl text-gray-800 mb-2">Acompañamiento sostenido</h3>
-                             <p className="text-gray-600 mb-4">Un proceso de 9 meses para ganar confianza, motivación y dirección.</p>
-                             <button onClick={() => onStartFlow('enciende')} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">Quiero conocer mas sobre el programa</button>
-                         </div>
-                         <div className="mt-8 text-center">
-                             <button onClick={onExit} className="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Volver a los resultados</button>
-                         </div>
-                    </div>
-                )
-            }
-
-            return (
-                <div className="text-center">
-                    <h1 className="font-serif-display text-3xl font-bold text-[#1f2937]" dangerouslySetInnerHTML={{ __html: title }}></h1>
-                    <div className="mt-8 w-full space-y-4">
-                        {ctas.map(cta => (
-                            <button key={cta.action} onClick={() => setScreen(cta.action)} className="w-full text-center px-6 py-3 rounded-lg shadow-md bg-[#f9442c] text-white font-semibold">{cta.text}</button>
-                        ))}
-                    </div>
-                    <div className="mt-6 border-t pt-6 space-y-2">
-                        <button onClick={onExit} className="text-sm text-gray-500 hover:text-[#f9442c] py-2 px-4 rounded-lg transition-colors">Volver a mis resultados</button>
-                    </div>
-                </div>
-            )
-        }
-        
-        if (screen === 'question') {
-            const question = mentoriaCoachingQuestions[currentIndex];
-            return (
-                <div>
-                    <button onClick={handleGoBack} className="flex items-center text-sm text-gray-500 hover:text-[#f9442c] mb-4">
-                        <BackArrowIcon />
-                        Regresar
-                    </button>
-                    <p className="text-sm font-semibold text-center text-[#f9442c]">Pregunta {currentIndex + 1} de {mentoriaCoachingQuestions.length}</p>
-                    <h2 className="font-serif-display text-2xl font-bold text-gray-800 mt-4 text-center">{question.text}</h2>
-                    <div className="mt-6 space-y-4">
-                        {question.options.map(opt => (
-                            <button key={opt.type} onClick={() => handleAnswer(opt.type)} className="w-full text-left px-6 py-4 rounded-lg shadow-md transition-all duration-200 cursor-pointer bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-[#f9442c]">
-                                {opt.text}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )
-        }
-    };
-
-    return <div>{renderContent()}</div>;
-};
